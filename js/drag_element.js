@@ -38,9 +38,11 @@ function dragElement(elmnt) {
     // 檢查是否存在拖動把手
     if (document.getElementById(elmnt.id + "_handle")) {
         // 如果存在，將把手的 mousedown 事件設置為 dragMouseDown 函數
+        document.getElementById(elmnt.id + "_handle").ontouchstart = dragTouchStart;
         document.getElementById(elmnt.id + "_handle").onmousedown = dragMouseDown;
     } else {
         // 如果不存在，則直接將元素的 mousedown 事件設置為 dragMouseDown 函數
+        elmnt.ontouchstart = dragTouchStart;
         elmnt.onmousedown = dragMouseDown;
     }
 
@@ -62,6 +64,16 @@ function dragElement(elmnt) {
         document.onmousemove = elementDrag;
     }
 
+    function dragTouchStart(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        elmnt.style.zIndex = getMaxZIndex() + 1;
+        document.ontouchend = closeDragElement;
+        document.ontouchmove = elementDragTouch;
+    }
+
     // 滑鼠移動時觸發的函數
     function elementDrag(e) {
         e.preventDefault(); // 防止瀏覽器預設的拖動行為
@@ -79,10 +91,24 @@ function dragElement(elmnt) {
         elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
     }
 
+    function elementDragTouch(e) {
+        e.preventDefault();
+        var touch = e.touches[0];
+        pos1 = pos3 - touch.clientX;
+        pos2 = pos4 - touch.clientY;
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    }
+
+
     // 放開滑鼠按鈕時觸發的函數，停止拖動
     function closeDragElement() {
         document.onmouseup = null;
         document.onmousemove = null;
+        document.ontouchend = null;
+        document.ontouchmove = null;
 
         // 重新排序z軸
         adjustZIndex(2)
